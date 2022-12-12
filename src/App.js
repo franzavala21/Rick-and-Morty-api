@@ -1,51 +1,56 @@
 import React, { useEffect, useState } from "react";
-import Characters from "./components/Characters";
-import Pagination from "./components/Pagination";
-import Navbar from './components/Navbar'
+import "bootstrap/dist/css/bootstrap.min.css"
+import "bootstrap/dist/js/bootstrap"
+import Filter from "./components/Filters/Filter";
+import Cards from "./components/Cards/Cards";
+import Pagination from "./components/Pagination/Pagination";
+import Search from "./components/Search/Search";
 
 
 
 function AppRM() {
   const [characters, setCharacters] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [search, setSearch] = useState("");
   const [info, setInfo] = useState({})
 
-  const initialUrl = "https://rickandmortyapi.com/api/character"
 
-  const fecthCharacters = (url) => {
-    fetch(url)
-      .then(response => response.json())
-      .then((data) => {
-        setCharacters(data.results);
-        setInfo(data.info);
-      })
-
-      .catch((error) => console.log(error));
-  };
-
-  const onPrevious = () => {
-    fecthCharacters(info.prev)
-  }
-
-  const onNext = () => {
-    fecthCharacters(info.next)
-
-  }
-
+  const initialUrl = `https://rickandmortyapi.com/api/character/?page=${pageNumber}&name=${search}`
 
   useEffect(() => {
-    fecthCharacters(initialUrl);
-  }, [])
+    if(pageNumber == 0){
+      return setCharacters(null)
+    }
+    fetch(initialUrl)
+    .then((response)=> response.json())
+    .then((data)=>{
+      if(data.error){
+        setCharacters(data.error)
+      }else{
+        setCharacters(data.results)
+        setInfo(data.info)
+      }
+    })
+  }, [initialUrl])
 
   return (
-    <>
-
-      <Navbar />
-      <Pagination prev={info.prev} next={info.next} onPrevious={onPrevious} onNext={onNext} />
-      <div className="container mt-5 ">
-        <Characters characters={characters} />
+    <div className="App">
+      <h1 className="text-center ubuntu my-4"> Rick & Morty <span className="text-primary">WiKi</span></h1>
+      <Search setPageNumber={setPageNumber} setSearch={setSearch}/>
+      <div className="container">
+        <div className="row">
+          <div className="col-3">
+            <Filter/>
+          </div>
+          <div className="col-8">
+            <div className="row">
+              <Cards results={characters}/>
+            </div>
+          </div>
+        </div>
       </div>
-      <Pagination prev={info.prev} next={info.next} onPrevious={onPrevious} onNext={onNext} />
-    </>
+      <Pagination info={info} pageNumber={pageNumber} setPageNumber={setPageNumber}/>
+    </div>
 
 
   );
